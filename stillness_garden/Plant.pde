@@ -8,6 +8,7 @@ class Plant {
   boolean alive;
   boolean dying;
   int pollenSpawnTimer;  // Timer for pollen generation
+  int maxFlowers = 40;   // Maximum number of flowers per plant
 
   // Constructor
   Plant(float x, float y) {
@@ -54,12 +55,14 @@ class Plant {
       if (b.growing) {
         b.grow();
 
-        // Check if branch is ready for a flower
-        if (b.isReadyForFlower() && !hasBranchFlower(b)) {
-          // Spawn flower at branch tip
+        // Check if branch is ready for a new flower (and under limit)
+        if (b.isReadyForFlower() && flowers.size() < maxFlowers) {
+          // Spawn flower at current branch tip position
           PVector tip = b.getTip();
           Flower f = new Flower(tip.x, tip.y);
           flowers.add(f);
+          // Record that flower was spawned at this point count
+          b.flowerSpawned();
         }
       }
     }
@@ -86,18 +89,6 @@ class Plant {
       spawnPollen();
       pollenSpawnTimer = 0;
     }
-  }
-
-  // Check if a branch already has a flower
-  boolean hasBranchFlower(Branch b) {
-    PVector tip = b.getTip();
-    for (Flower f : flowers) {
-      // Check if flower is near branch tip (within 5 pixels)
-      if (dist(f.position.x, f.position.y, tip.x, tip.y) < 5) {
-        return true;
-      }
-    }
-    return false;
   }
 
   // Display all plant elements (layer order: branches -> flowers -> seed -> particles)

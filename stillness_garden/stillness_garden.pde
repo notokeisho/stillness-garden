@@ -1,7 +1,7 @@
 // Stillness Garden - Main file
 // A meditative experience where stillness nurtures growth
 
-// ========== TEST CODE FOR TASK 2.1.1 ==========
+// ========== TEST CODE FOR TASK 2.2.1 ==========
 // This code will be removed after testing
 
 Plant testPlant;
@@ -20,17 +20,9 @@ void draw() {
   blendMode(ADD);
 
   if (testPlant != null) {
-    // Update and display seed
-    testPlant.seed.update();
-    testPlant.seed.display();
-
-    // Update and display all branches
-    for (Branch b : testPlant.branches) {
-      if (b.growing) {
-        b.grow();
-      }
-      b.display();
-    }
+    // Update and display plant
+    testPlant.update();
+    testPlant.display();
   }
 
   // Reset blend mode
@@ -43,16 +35,18 @@ void draw() {
   text("Press SPACE to clear", 20, 50);
 
   if (testPlant != null) {
-    text("Branch count: " + testPlant.branches.size(), 20, 80);
+    text("Branches: " + testPlant.branches.size(), 20, 80);
+    text("Flowers: " + testPlant.flowers.size(), 20, 100);
+    text("Particles: " + testPlant.particles.size(), 20, 120);
 
-    // Show branch info
-    int yOffset = 100;
-    for (int i = 0; i < testPlant.branches.size(); i++) {
+    // Show first few branch point counts
+    int yOffset = 150;
+    int showCount = min(testPlant.branches.size(), 8);
+    for (int i = 0; i < showCount; i++) {
       Branch b = testPlant.branches.get(i);
-      float angleDeg = degrees(b.angle) % 360;
-      if (angleDeg < 0) angleDeg += 360;
-      text("Branch " + i + ": angle = " + nf(angleDeg, 1, 1) + " deg, points = " + b.points.size(), 20, yOffset);
-      yOffset += 20;
+      String status = b.growing ? "growing" : "stopped";
+      text("Branch " + i + ": " + b.points.size() + " pts (" + status + ")", 20, yOffset);
+      yOffset += 18;
     }
   } else {
     text("No plant yet. Click to create one.", 20, 80);

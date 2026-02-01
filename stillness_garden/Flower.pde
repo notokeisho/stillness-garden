@@ -83,10 +83,10 @@ class Flower {
       currentCenterColor = lerpColor(centerColor, grayColor, dyingProgress);
     }
 
-    // Draw glow layers (wider glow effect)
-    for (int layer = 4; layer > 0; layer--) {
-      float glowSize = size * (1 + layer * 0.5);
-      float alpha = (25.0 / layer) * fadeFactor;
+    // Draw glow layers
+    for (int layer = 3; layer > 0; layer--) {
+      float glowSize = size * (1 + layer * 0.3);
+      float alpha = (20.0 / layer) * fadeFactor;
       fill(currentPetalColor, alpha);
       drawPetals(glowSize);
     }

@@ -9,7 +9,8 @@ class Branch {
   float noiseOffset;
   float growthSpeed;
   color baseColor;
-  int flowerThreshold;  // Points needed before flower can bloom
+  int flowerInterval;       // Points between each flower
+  int lastFlowerPointCount; // Point count when last flower was spawned
 
   // Constructor
   Branch(float startX, float startY, float initialAngle) {
@@ -23,7 +24,8 @@ class Branch {
     angle = initialAngle;
     noiseOffset = random(1000);  // Unique noise offset for each branch
     growthSpeed = 2.0;  // 2.0 px per frame
-    flowerThreshold = 25;  // Flower blooms after 25 points
+    flowerInterval = 25;  // Flower blooms every 25 points
+    lastFlowerPointCount = 0;
 
     // Green color (vivid green)
     baseColor = color(80, 200, 80);
@@ -163,9 +165,16 @@ class Branch {
     return points.get(points.size() - 1);
   }
 
-  // Check if branch is ready for a flower to bloom
+  // Check if branch is ready for a new flower to bloom
   boolean isReadyForFlower() {
-    return points.size() >= flowerThreshold;
+    int currentPoints = points.size();
+    // Check if we've grown enough since last flower
+    return (currentPoints - lastFlowerPointCount) >= flowerInterval;
+  }
+
+  // Record that a flower was spawned at current position
+  void flowerSpawned() {
+    lastFlowerPointCount = points.size();
   }
 
   // Start the dying (withering) process
