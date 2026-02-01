@@ -22,11 +22,11 @@ class Branch {
 
     angle = initialAngle;
     noiseOffset = random(1000);  // Unique noise offset for each branch
-    growthSpeed = 1.0;  // 1.0 px per frame
+    growthSpeed = 2.0;  // 2.0 px per frame
     flowerThreshold = 25;  // Flower blooms after 25 points
 
-    // Pale green color
-    baseColor = color(180, 230, 180);
+    // Green color (vivid green)
+    baseColor = color(80, 200, 80);
   }
 
   // Grow the branch using Perlin noise for organic curves
@@ -36,10 +36,10 @@ class Branch {
     // Get current tip position
     PVector tip = getTip();
 
-    // Use Perlin noise to smoothly vary the angle
+    // Use Perlin noise to smoothly vary the angle (gentle curves)
     float noiseValue = noise(noiseOffset);
-    angle += map(noiseValue, 0, 1, -0.3, 0.3);
-    noiseOffset += 0.05;
+    angle += map(noiseValue, 0, 1, -0.08, 0.08);
+    noiseOffset += 0.02;
 
     // Calculate new point position
     float newX = tip.x + cos(angle) * growthSpeed;
