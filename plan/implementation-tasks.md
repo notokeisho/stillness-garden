@@ -80,10 +80,10 @@
 
 ### Task 1.3.2: Branch クラスの実装（灰化機能）
 
-- [ ] startDying() メソッドの実装
-- [ ] updateDying() メソッドの実装（灰化進行）
-- [ ] display() の灰化表現を追加
-- [ ] isFullyDead() メソッドの実装
+- [x] startDying() メソッドの実装
+- [x] updateDying() メソッドの実装（灰化進行）
+- [x] display() の灰化表現を追加
+- [x] isFullyDead() メソッドの実装
 
 ### Task 1.3.3: Branch 灰化の単体動作確認
 
@@ -244,7 +244,7 @@
 | Task 1.2.1 | 2026-02-02 | Seed単体動作確認OK |
 | Task 1.3 | 2026-02-02 | Branchクラスの基本機能を実装 |
 | Task 1.3.1 | 2026-02-02 | Branch成長確認OK、色と速度を調整 |
-| Task 1.3.2 | - | - |
+| Task 1.3.2 | 2026-02-02 | Branchの灰化機能を実装 |
 | Task 1.3.3 | - | - |
 | Task 1.4 | - | - |
 | Task 1.4.1 | - | - |
