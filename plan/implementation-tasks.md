@@ -38,11 +38,11 @@
 
 ### Task 1.1: Particle クラスの実装
 
-- [ ] プロパティの定義（position, velocity, lifespan, particleType, etc.）
-- [ ] コンストラクタの実装（花粉用、灰用）
-- [ ] update() メソッドの実装（花粉: 漂う、灰: 落ちる）
-- [ ] display() メソッドの実装（透明度のフェードアウト、グロー効果含む）
-- [ ] isDead() メソッドの実装
+- [x] プロパティの定義（position, velocity, lifespan, particleType, etc.）
+- [x] コンストラクタの実装（花粉用、灰用）
+- [x] update() メソッドの実装（花粉: 漂う、灰: 落ちる）
+- [x] display() メソッドの実装（透明度のフェードアウト、グロー効果含む）
+- [x] isDead() メソッドの実装
 
 ### Task 1.1.1: Particle 単体動作確認
 
@@ -238,7 +238,7 @@
 | タスク | 完了日 | 備考 |
 | ------ | ------ | ---- |
 | Task 0.1 | 2026-02-02 | Processingプロジェクトの初期構造を作成 |
-| Task 1.1 | - | - |
+| Task 1.1 | 2026-02-02 | Particleクラスを実装 |
 | Task 1.1.1 | - | - |
 | Task 1.2 | - | - |
 | Task 1.2.1 | - | - |
