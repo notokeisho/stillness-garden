@@ -9,7 +9,9 @@ class Flower {
   boolean dying;
   float rotation;
   color petalColor;
+  color centerColor;
   float bloomSpeed;
+  int flowerType;  // 0: pink, 1: white
 
   // Constructor
   Flower(float x, float y) {
@@ -22,8 +24,18 @@ class Flower {
     rotation = random(TWO_PI);
     bloomSpeed = 0.02;
 
-    // Pale pink color
-    petalColor = color(255, 180, 200);
+    // Randomly choose flower type
+    flowerType = int(random(2));  // 0 or 1
+
+    if (flowerType == 0) {
+      // Pale pink flower
+      petalColor = color(255, 180, 200);
+      centerColor = color(255, 255, 200);  // Yellow center
+    } else {
+      // White flower with slight blue tint
+      petalColor = color(230, 240, 255);
+      centerColor = color(255, 255, 220);  // Warm yellow center
+    }
   }
 
   // Progress the blooming animation
@@ -53,10 +65,10 @@ class Flower {
 
     noStroke();
 
-    // Draw glow layers
-    for (int layer = 3; layer > 0; layer--) {
-      float glowSize = size * (1 + layer * 0.3);
-      float alpha = 20.0 / layer;
+    // Draw glow layers (wider glow effect)
+    for (int layer = 4; layer > 0; layer--) {
+      float glowSize = size * (1 + layer * 0.5);
+      float alpha = 25.0 / layer;
       fill(petalColor, alpha);
       drawPetals(glowSize);
     }
@@ -66,7 +78,7 @@ class Flower {
     drawPetals(size);
 
     // Draw bright center
-    fill(255, 255, 200, 200);
+    fill(centerColor, 200);
     ellipse(0, 0, size * 0.3, size * 0.3);
 
     popMatrix();
