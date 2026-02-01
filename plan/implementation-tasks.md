@@ -65,12 +65,12 @@
 
 ### Task 1.3: Branch クラスの実装（基本機能）
 
-- [ ] プロパティの定義（points, growing, dying, ashProgress, angle, etc.）
-- [ ] コンストラクタの実装
-- [ ] grow() メソッドの実装（有機的な曲がり）
-- [ ] display() メソッドの実装（グロー効果含む）
-- [ ] getTip() メソッドの実装
-- [ ] isReadyForFlower() メソッドの実装
+- [x] プロパティの定義（points, growing, dying, ashProgress, angle, etc.）
+- [x] コンストラクタの実装
+- [x] grow() メソッドの実装（有機的な曲がり）
+- [x] display() メソッドの実装（グロー効果含む）
+- [x] getTip() メソッドの実装
+- [x] isReadyForFlower() メソッドの実装
 
 ### Task 1.3.1: Branch 成長の単体動作確認
 
@@ -242,7 +242,7 @@
 | Task 1.1.1 | 2026-02-02 | Particle単体動作確認OK |
 | Task 1.2 | 2026-02-02 | Seedクラスを実装 |
 | Task 1.2.1 | 2026-02-02 | Seed単体動作確認OK |
-| Task 1.3 | - | - |
+| Task 1.3 | 2026-02-02 | Branchクラスの基本機能を実装 |
 | Task 1.3.1 | - | - |
 | Task 1.3.2 | - | - |
 | Task 1.3.3 | - | - |
