@@ -8,6 +8,7 @@ class Plant {
   boolean alive;
   boolean dying;
   int pollenSpawnTimer;  // Timer for pollen generation
+  int ashSpawnTimer;     // Timer for ash generation
   int maxFlowers = 40;   // Maximum number of flowers per plant
 
   // Constructor
@@ -19,6 +20,7 @@ class Plant {
     alive = true;
     dying = false;
     pollenSpawnTimer = 0;
+    ashSpawnTimer = 0;
 
     // Initialize branches radiating from seed
     initBranches();
@@ -43,7 +45,7 @@ class Plant {
   // Update plant state (growth or dying)
   void update() {
     if (dying) {
-      // Will be implemented in Task 2.3
+      updateDying();
       return;
     }
 
@@ -91,6 +93,39 @@ class Plant {
     }
   }
 
+  // Update dying state
+  void updateDying() {
+    // Update branches (dying process)
+    for (Branch b : branches) {
+      if (b.dying) {
+        b.updateDying();
+      }
+    }
+
+    // Update flowers (dying process)
+    for (Flower f : flowers) {
+      if (f.dying) {
+        f.updateDying();
+      }
+    }
+
+    // Update particles and remove dead ones
+    for (int i = particles.size() - 1; i >= 0; i--) {
+      Particle p = particles.get(i);
+      p.update();
+      if (p.isDead()) {
+        particles.remove(i);
+      }
+    }
+
+    // Spawn ash particles periodically
+    ashSpawnTimer++;
+    if (ashSpawnTimer >= 10) {  // Every 10 frames
+      spawnAsh();
+      ashSpawnTimer = 0;
+    }
+  }
+
   // Display all plant elements (layer order: branches -> flowers -> seed -> particles)
   void display() {
     // Draw branches first (bottom layer)
@@ -103,8 +138,10 @@ class Plant {
       f.display();
     }
 
-    // Draw seed
-    seed.display();
+    // Draw seed (only if alive)
+    if (seed.alive) {
+      seed.display();
+    }
 
     // Draw particles (top layer)
     for (Particle p : particles) {
@@ -133,14 +170,88 @@ class Plant {
     }
   }
 
+  // Spawn ash particles from dying branches and flowers
+  void spawnAsh() {
+    // Spawn ash from dying branches
+    for (Branch b : branches) {
+      if (b.dying && !b.isFullyDead()) {
+        PVector ashPos = b.getAshPosition();
+        // Spawn 1-2 ash particles
+        int ashCount = int(random(1, 3));
+        for (int i = 0; i < ashCount; i++) {
+          float offsetX = random(-3, 3);
+          float offsetY = random(-3, 3);
+          Particle ash = new Particle(
+            ashPos.x + offsetX,
+            ashPos.y + offsetY,
+            1  // type 1 = ash
+          );
+          particles.add(ash);
+        }
+      }
+    }
+
+    // Spawn ash from dying flowers
+    for (Flower f : flowers) {
+      if (f.dying && !f.isDead()) {
+        // Spawn 1-2 ash particles from flower
+        int ashCount = int(random(1, 3));
+        for (int i = 0; i < ashCount; i++) {
+          float offsetX = random(-f.size, f.size);
+          float offsetY = random(-f.size, f.size);
+          Particle ash = new Particle(
+            f.position.x + offsetX,
+            f.position.y + offsetY,
+            1  // type 1 = ash
+          );
+          particles.add(ash);
+        }
+      }
+    }
+  }
+
   // Start the dying process
   void startDying() {
-    // Will be implemented in Task 2.3
+    dying = true;
+    alive = false;
+
+    // Kill seed
+    seed.die();
+
+    // Start dying for all branches
+    for (Branch b : branches) {
+      b.startDying();
+    }
+
+    // Start dying for all flowers
+    for (Flower f : flowers) {
+      f.startDying();
+    }
   }
 
   // Check if plant has fully withered
   boolean isFullyDead() {
-    // Will be implemented in Task 2.3
-    return false;
+    if (!dying) return false;
+
+    // Check if all branches are dead
+    for (Branch b : branches) {
+      if (!b.isFullyDead()) {
+        return false;
+      }
+    }
+
+    // Check if all flowers are dead
+    for (Flower f : flowers) {
+      if (!f.isDead()) {
+        return false;
+      }
+    }
+
+    // Check if all particles are gone
+    if (particles.size() > 0) {
+      return false;
+    }
+
+    return true;
   }
 }
