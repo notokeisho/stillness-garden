@@ -53,6 +53,15 @@ class Branch {
   void display() {
     if (points.size() < 2) return;
 
+    if (dying) {
+      displayDying();
+    } else {
+      displayAlive();
+    }
+  }
+
+  // Display alive branch
+  void displayAlive() {
     // Draw glow layers (larger, more transparent)
     for (int layer = 3; layer > 0; layer--) {
       float weight = layer * 2;
@@ -89,6 +98,63 @@ class Branch {
     endShape();
   }
 
+  // Display dying branch (ash spreading from root to tip)
+  void displayDying() {
+    // Find the point index where ash has reached
+    float traveled = 0;
+    int ashIndex = 0;
+
+    for (int i = 1; i < points.size(); i++) {
+      PVector p1 = points.get(i - 1);
+      PVector p2 = points.get(i);
+      float segmentLength = dist(p1.x, p1.y, p2.x, p2.y);
+
+      if (traveled + segmentLength >= ashProgress) {
+        ashIndex = i;
+        break;
+      }
+      traveled += segmentLength;
+      ashIndex = i;
+    }
+
+    // Draw the remaining alive part (from ash position to tip)
+    if (ashIndex < points.size() - 1) {
+      // Glow layers for alive part
+      for (int layer = 3; layer > 0; layer--) {
+        float weight = layer * 2;
+        float alpha = 30.0 / layer;
+        stroke(baseColor, alpha);
+        strokeWeight(weight);
+        noFill();
+
+        beginShape();
+        for (int i = ashIndex; i < points.size(); i++) {
+          PVector p = points.get(i);
+          curveVertex(p.x, p.y);
+          if (i == ashIndex || i == points.size() - 1) {
+            curveVertex(p.x, p.y);
+          }
+        }
+        endShape();
+      }
+
+      // Main line for alive part
+      stroke(baseColor, 200);
+      strokeWeight(1.5);
+      noFill();
+
+      beginShape();
+      for (int i = ashIndex; i < points.size(); i++) {
+        PVector p = points.get(i);
+        curveVertex(p.x, p.y);
+        if (i == ashIndex || i == points.size() - 1) {
+          curveVertex(p.x, p.y);
+        }
+      }
+      endShape();
+    }
+  }
+
   // Get the tip (last point) of the branch
   PVector getTip() {
     if (points.size() == 0) {
@@ -100,5 +166,55 @@ class Branch {
   // Check if branch is ready for a flower to bloom
   boolean isReadyForFlower() {
     return points.size() >= flowerThreshold;
+  }
+
+  // Start the dying (withering) process
+  void startDying() {
+    growing = false;
+    dying = true;
+    ashProgress = 0;
+  }
+
+  // Update the dying process (ash spreads from root to tip)
+  void updateDying() {
+    if (!dying) return;
+
+    // Ash progress speed: 1.5x growth speed
+    float ashSpeed = growthSpeed * 1.5;
+    ashProgress += ashSpeed;
+  }
+
+  // Check if branch has fully withered
+  boolean isFullyDead() {
+    if (!dying) return false;
+
+    // Calculate total length of branch
+    float totalLength = 0;
+    for (int i = 1; i < points.size(); i++) {
+      PVector p1 = points.get(i - 1);
+      PVector p2 = points.get(i);
+      totalLength += dist(p1.x, p1.y, p2.x, p2.y);
+    }
+
+    return ashProgress >= totalLength;
+  }
+
+  // Get the position where ash has reached (for spawning ash particles)
+  PVector getAshPosition() {
+    float traveled = 0;
+    for (int i = 1; i < points.size(); i++) {
+      PVector p1 = points.get(i - 1);
+      PVector p2 = points.get(i);
+      float segmentLength = dist(p1.x, p1.y, p2.x, p2.y);
+
+      if (traveled + segmentLength >= ashProgress) {
+        // Interpolate position within this segment
+        float t = (ashProgress - traveled) / segmentLength;
+        return new PVector(lerp(p1.x, p2.x, t), lerp(p1.y, p2.y, t));
+      }
+      traveled += segmentLength;
+    }
+    // Return last point if ash has passed the end
+    return getTip();
   }
 }
