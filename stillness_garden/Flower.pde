@@ -7,10 +7,12 @@ class Flower {
   float maxSize;
   float bloomProgress;  // 0.0 to 1.0
   boolean dying;
+  float dyingProgress;  // 0.0 to 1.0
   float rotation;
   color petalColor;
   color centerColor;
   float bloomSpeed;
+  float dyingSpeed;
   int flowerType;  // 0: pink, 1: white
 
   // Constructor
@@ -21,8 +23,10 @@ class Flower {
     size = 0;
     bloomProgress = 0;
     dying = false;
+    dyingProgress = 0;
     rotation = random(TWO_PI);
     bloomSpeed = 0.02;
+    dyingSpeed = 0.015;  // Slightly slower than bloom for graceful fade
 
     // Randomly choose flower type
     flowerType = int(random(2));  // 0 or 1
@@ -58,6 +62,7 @@ class Flower {
   // Draw flower with glow effect
   void display() {
     if (size < 1) return;
+    if (dying && dyingProgress >= 1.0) return;  // Fully dead, don't draw
 
     pushMatrix();
     translate(position.x, position.y);
@@ -65,20 +70,33 @@ class Flower {
 
     noStroke();
 
+    // Calculate fade factor for dying flowers (1.0 = alive, 0.0 = dead)
+    float fadeFactor = dying ? (1.0 - dyingProgress) : 1.0;
+
+    // Calculate color transition to gray when dying
+    color currentPetalColor = petalColor;
+    color currentCenterColor = centerColor;
+    if (dying) {
+      // Lerp towards gray as flower dies
+      color grayColor = color(100, 100, 100);
+      currentPetalColor = lerpColor(petalColor, grayColor, dyingProgress);
+      currentCenterColor = lerpColor(centerColor, grayColor, dyingProgress);
+    }
+
     // Draw glow layers (wider glow effect)
     for (int layer = 4; layer > 0; layer--) {
       float glowSize = size * (1 + layer * 0.5);
-      float alpha = 25.0 / layer;
-      fill(petalColor, alpha);
+      float alpha = (25.0 / layer) * fadeFactor;
+      fill(currentPetalColor, alpha);
       drawPetals(glowSize);
     }
 
     // Draw main petals
-    fill(petalColor, 180);
+    fill(currentPetalColor, 180 * fadeFactor);
     drawPetals(size);
 
     // Draw bright center
-    fill(centerColor, 200);
+    fill(currentCenterColor, 200 * fadeFactor);
     ellipse(0, 0, size * 0.3, size * 0.3);
 
     popMatrix();
@@ -105,5 +123,26 @@ class Flower {
   // Check if flower is fully bloomed
   boolean isFullyBloomed() {
     return bloomProgress >= 1.0;
+  }
+
+  // Start the dying (withering) process
+  void startDying() {
+    dying = true;
+    dyingProgress = 0;
+  }
+
+  // Update the dying process (fade to gray and disappear)
+  void updateDying() {
+    if (!dying) return;
+
+    dyingProgress += dyingSpeed;
+    if (dyingProgress > 1.0) {
+      dyingProgress = 1.0;
+    }
+  }
+
+  // Check if flower has fully withered
+  boolean isDead() {
+    return dying && dyingProgress >= 1.0;
   }
 }
