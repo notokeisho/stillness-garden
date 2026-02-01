@@ -6,6 +6,7 @@
 | ---------------- | -------------------------------- |
 | 言語             | Processing (Java Mode)           |
 | バージョン制約   | Processing 2.2.1 で動作必須      |
+| レンダラー       | P2D（blendMode対応のため）       |
 | 外部ライブラリ   | 使用しない（標準機能のみ）       |
 | フレームレート   | 60fps                            |
 
@@ -193,6 +194,58 @@ boolean isMouseMoving() {
 
 ---
 
+## 具体的な数値パラメータ
+
+### 成長・灰化速度
+
+| パラメータ | 値 | 説明 |
+| ---------- | --- | ---- |
+| 成長速度 | 1.0 px/frame | 60fpsで1秒に60ピクセル伸びる |
+| 灰化速度 | 1.5 px/frame | 成長速度の1.5倍 |
+| 花が咲く条件 | 25ポイント | 枝のポイント数が25に達したら開花 |
+
+### マウス判定
+
+| パラメータ | 値 | 説明 |
+| ---------- | --- | ---- |
+| 移動判定閾値 | 2 px | この距離以上動いたら「移動」と判定 |
+
+### 粒子
+
+| パラメータ | 値 | 説明 |
+| ---------- | --- | ---- |
+| 寿命 | 180〜300 frame | 3〜5秒（60fps換算） |
+
+### 枝の曲がりアルゴリズム
+
+Perlin noise を使用して有機的な曲がりを実現する。
+
+```java
+// Branch クラス内
+float noiseOffset;  // 各枝ごとに異なる初期値
+
+void grow() {
+  // Perlin noise で角度を滑らかに変化させる
+  float noiseValue = noise(noiseOffset);
+  angle += map(noiseValue, 0, 1, -0.3, 0.3);
+  noiseOffset += 0.05;
+
+  // 新しい点を追加
+  PVector tip = getTip();
+  float newX = tip.x + cos(angle) * growthSpeed;
+  float newY = tip.y + sin(angle) * growthSpeed;
+  points.add(new PVector(newX, newY));
+}
+```
+
+Perlin noise の特徴:
+
+- Processing 標準の `noise()` 関数を使用
+- 連続的で滑らかな値を生成
+- 蔦や植物の自然な曲がりを表現できる
+
+---
+
 ## 描画処理
 
 ### レイヤー順序
@@ -210,6 +263,12 @@ Processing 2.2.1 で実現可能な方法:
 - 各オブジェクトを複数回、異なる透明度とサイズで描画
 - 大きく薄い円 → 小さく濃い円の順で重ねる
 - blendMode(ADD)を使用して発光感を出す
+
+blendMode(ADD) の注意点:
+
+- デフォルトレンダラー（JAVA2D）では不安定な動作をする
+- P2D レンダラーを使用することで安定動作する
+- そのため setup() で `size(800, 800, P2D)` を指定する
 
 ```java
 void drawGlow(float x, float y, float size, color c) {
