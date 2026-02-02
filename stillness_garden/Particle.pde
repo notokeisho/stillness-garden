@@ -5,12 +5,12 @@ class Particle {
   PVector velocity;
   float lifespan;
   float maxLifespan;
-  int particleType;  // 0: pollen, 1: ash
+  int particleType;  // 0: pollen, 1: ash, 2: petal
   float size;
   color particleColor;
   int fadeInDuration = 90;  // 1.5 seconds fade-in
 
-  // Constructor
+  // Constructor for pollen and ash
   Particle(float x, float y, int type) {
     position = new PVector(x, y);
     particleType = type;
@@ -33,6 +33,21 @@ class Particle {
     }
   }
 
+  // Constructor for petals (with initial velocity and color)
+  Particle(float x, float y, int type, float vx, float vy, color c) {
+    position = new PVector(x, y);
+    particleType = type;
+    velocity = new PVector(vx, vy);
+    particleColor = c;
+
+    // Petals have shorter lifespan
+    maxLifespan = random(90, 150);  // 1.5-2.5 seconds
+    lifespan = maxLifespan;
+
+    // Petal size
+    size = random(4, 8);
+  }
+
   // Update position and lifespan
   void update() {
     if (particleType == 0) {
@@ -41,10 +56,15 @@ class Particle {
       velocity.y += random(-0.05, 0.05);
       // Limit velocity for gentle floating (will be increased when wind applied)
       velocity.limit(0.5);
-    } else {
+    } else if (particleType == 1) {
       // Ash: apply gravity and slight horizontal drift
       velocity.y += 0.02;  // gravity
       velocity.x += random(-0.02, 0.02);  // horizontal drift
+    } else if (particleType == 2) {
+      // Petal: gravity + gentle swaying
+      velocity.y += 0.03;  // gravity
+      velocity.x += random(-0.02, 0.02);  // swaying
+      velocity.x *= 0.99;  // air resistance
     }
 
     position.add(velocity);
@@ -64,7 +84,30 @@ class Particle {
     // Calculate age (frames since creation)
     float age = maxLifespan - lifespan;
 
-    // Calculate fade-in factor (0.0 to 1.0 over fadeInDuration)
+    // Petals: no fade-in, just fade-out
+    if (particleType == 2) {
+      float alpha = map(lifespan, 0, maxLifespan, 0, 200);
+
+      noStroke();
+
+      // Draw petal as ellipse (elongated shape)
+      pushMatrix();
+      translate(position.x, position.y);
+      rotate(velocity.heading());  // Rotate based on movement direction
+
+      // Glow layer
+      fill(particleColor, alpha * 0.3);
+      ellipse(0, 0, size * 1.5, size * 0.8);
+
+      // Main petal
+      fill(particleColor, alpha);
+      ellipse(0, 0, size, size * 0.5);
+
+      popMatrix();
+      return;
+    }
+
+    // Pollen and Ash: fade-in effect
     float fadeInProgress = min(1.0, age / fadeInDuration);
     float growthFactor = easeOutCubic(fadeInProgress);
 

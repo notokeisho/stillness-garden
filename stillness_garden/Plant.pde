@@ -91,7 +91,7 @@ class Plant {
           }
 
           if (flowerPos != null) {
-            Flower f = new Flower(flowerPos.x, flowerPos.y);
+            Flower f = new Flower(flowerPos.x, flowerPos.y, b);
             flowers.add(f);
           }
         }
@@ -124,7 +124,7 @@ class Plant {
               }
 
               if (flowerPos != null) {
-                Flower f = new Flower(flowerPos.x, flowerPos.y);
+                Flower f = new Flower(flowerPos.x, flowerPos.y, b);
                 flowers.add(f);
               }
             }
@@ -165,10 +165,21 @@ class Plant {
     for (Branch b : branches) {
       if (b.dying) {
         b.updateDying();
+
+        // Check if ash has reached any flowers on this branch
+        PVector ashPos = b.getAshPosition();
+        for (Flower f : flowers) {
+          if (f.parentBranch == b && !f.dying) {
+            if (dist(ashPos.x, ashPos.y, f.position.x, f.position.y) < 15) {
+              spawnPetals(f);  // Spawn petal particles
+              f.startDying();  // Mark flower as dying (will be hidden)
+            }
+          }
+        }
       }
     }
 
-    // Update flowers (dying process)
+    // Update flowers (dying process) - now just for tracking, not visual
     for (Flower f : flowers) {
       if (f.dying) {
         f.updateDying();
@@ -306,6 +317,28 @@ class Plant {
     }
   }
 
+  // Spawn petal particles when a flower scatters
+  void spawnPetals(Flower f) {
+    for (int i = 0; i < f.petalCount; i++) {
+      // Calculate burst direction for each petal
+      float angle = TWO_PI / f.petalCount * i + f.rotation;
+      float speed = random(1.5, 3.0);  // Burst speed
+      float vx = cos(angle) * speed;
+      float vy = sin(angle) * speed;
+
+      // Create petal particle
+      Particle petal = new Particle(
+        f.position.x,
+        f.position.y,
+        2,  // type 2 = petal
+        vx,
+        vy,
+        f.petalColor
+      );
+      particles.add(petal);
+    }
+  }
+
   // Start the dying process
   void startDying() {
     dying = true;
@@ -319,10 +352,7 @@ class Plant {
       b.startDying();
     }
 
-    // Start dying for all flowers
-    for (Flower f : flowers) {
-      f.startDying();
-    }
+    // Flowers will start dying when ash reaches them (in updateDying)
   }
 
   // Check if plant has fully withered

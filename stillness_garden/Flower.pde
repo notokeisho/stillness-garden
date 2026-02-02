@@ -16,10 +16,12 @@ class Flower {
   int flowerType;  // 0: pink, 1: white
   int pollenTimer;     // Pollen spawn timer (individual per flower)
   int pollenInterval;  // Pollen spawn interval (varies per flower)
+  Branch parentBranch; // Parent branch this flower belongs to
 
   // Constructor
-  Flower(float x, float y) {
+  Flower(float x, float y, Branch parent) {
     position = new PVector(x, y);
+    parentBranch = parent;
     petalCount = int(random(5, 7));  // 5 or 6 petals
     maxSize = random(15, 25);
     size = 0;
