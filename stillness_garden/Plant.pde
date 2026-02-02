@@ -10,6 +10,10 @@ class Plant {
   int pollenSpawnTimer;  // Timer for pollen generation
   int ashSpawnTimer;     // Timer for ash generation
   int maxFlowers = 40;   // Maximum number of flowers per plant
+  int maxParticles = 300; // Maximum number of particles
+  boolean reachedFlowerLimit = false;  // Flag for when flower limit is reached
+  PVector windDirection;   // Wind direction (set when flower limit reached)
+  float windStrength = 0.05;  // Wind strength
 
   // Constructor
   Plant(float x, float y) {
@@ -52,18 +56,34 @@ class Plant {
     // Update seed
     seed.update();
 
+    // Check if flower limit is reached and stop branch growth
+    if (!reachedFlowerLimit && flowers.size() >= maxFlowers) {
+      reachedFlowerLimit = true;
+      // Stop all branch growth
+      for (Branch b : branches) {
+        b.growing = false;
+      }
+      // Set random wind direction (mainly horizontal, slight vertical)
+      windDirection = new PVector(random(-1, 1), random(-0.3, 0.3));
+      windDirection.normalize();
+    }
+
     // Update branches and check for flower spawning
     for (Branch b : branches) {
       if (b.growing) {
         b.grow();
 
-        // Check if branch is ready for a new flower (and under limit)
-        if (b.isReadyForFlower() && flowers.size() < maxFlowers) {
-          // Spawn flower at current branch tip position
-          PVector tip = b.getTip();
-          Flower f = new Flower(tip.x, tip.y);
-          flowers.add(f);
-          // Record that flower was spawned at this point count
+        // Check if branch is ready for a new flower
+        if (b.isReadyForFlower()) {
+          if (flowers.size() < maxFlowers) {
+            // 1/3 chance to spawn a flower
+            if (random(1) < 0.33) {
+              PVector tip = b.getTip();
+              Flower f = new Flower(tip.x, tip.y);
+              flowers.add(f);
+            }
+          }
+          // Record point count regardless of whether flower was spawned
           b.flowerSpawned();
         }
       }
@@ -80,17 +100,17 @@ class Plant {
     for (int i = particles.size() - 1; i >= 0; i--) {
       Particle p = particles.get(i);
       p.update();
+      // Apply wind to pollen after flower limit reached
+      if (reachedFlowerLimit && p.particleType == 0) {
+        p.applyWind(windDirection, windStrength);
+      }
       if (p.isDead()) {
         particles.remove(i);
       }
     }
 
-    // Spawn pollen from bloomed flowers periodically
-    pollenSpawnTimer++;
-    if (pollenSpawnTimer >= 30) {  // Every 30 frames (0.5 seconds)
-      spawnPollen();
-      pollenSpawnTimer = 0;
-    }
+    // Spawn pollen from bloomed flowers (each flower has its own timer)
+    spawnPollen();
   }
 
   // Update dying state
@@ -149,64 +169,94 @@ class Plant {
     }
   }
 
-  // Spawn pollen particles from bloomed flowers
+  // Spawn pollen particles from bloomed flowers (individual timer per flower)
   void spawnPollen() {
+    // Check particle limit
+    if (particles.size() >= maxParticles) return;
+
     for (Flower f : flowers) {
-      if (f.isFullyBloomed() && !f.dying) {
-        // Spawn 1-2 pollen particles per flower
-        int pollenCount = int(random(1, 3));
-        for (int i = 0; i < pollenCount; i++) {
-          // Spawn near flower position with slight offset
-          float offsetX = random(-f.size, f.size);
-          float offsetY = random(-f.size, f.size);
-          Particle pollen = new Particle(
+      if (particles.size() >= maxParticles) break;
+
+      // Each flower has its own timer
+      if (f.shouldSpawnPollen()) {
+        float offsetX = random(-f.size, f.size);
+        float offsetY = random(-f.size, f.size);
+        Particle pollen = new Particle(
+          f.position.x + offsetX,
+          f.position.y + offsetY,
+          0  // type 0 = pollen
+        );
+        particles.add(pollen);
+
+        // After flower limit: spawn extra pollen for more dramatic effect
+        if (reachedFlowerLimit && particles.size() < maxParticles) {
+          offsetX = random(-f.size, f.size);
+          offsetY = random(-f.size, f.size);
+          Particle extraPollen = new Particle(
             f.position.x + offsetX,
             f.position.y + offsetY,
-            0  // type 0 = pollen
+            0
           );
-          particles.add(pollen);
+          particles.add(extraPollen);
         }
       }
     }
   }
 
-  // Spawn ash particles from dying branches and flowers
+  // Spawn ash particles from dying branches and flowers (optimized)
   void spawnAsh() {
-    // Spawn ash from dying branches
+    // Check particle limit
+    if (particles.size() >= maxParticles) return;
+
+    // Collect dying branches
+    ArrayList<Branch> dyingBranches = new ArrayList<Branch>();
     for (Branch b : branches) {
       if (b.dying && !b.isFullyDead()) {
-        PVector ashPos = b.getAshPosition();
-        // Spawn 1-2 ash particles
-        int ashCount = int(random(1, 3));
-        for (int i = 0; i < ashCount; i++) {
-          float offsetX = random(-3, 3);
-          float offsetY = random(-3, 3);
-          Particle ash = new Particle(
-            ashPos.x + offsetX,
-            ashPos.y + offsetY,
-            1  // type 1 = ash
-          );
-          particles.add(ash);
-        }
+        dyingBranches.add(b);
       }
     }
 
-    // Spawn ash from dying flowers
+    // Collect dying flowers
+    ArrayList<Flower> dyingFlowers = new ArrayList<Flower>();
     for (Flower f : flowers) {
       if (f.dying && !f.isDead()) {
-        // Spawn 1-2 ash particles from flower
-        int ashCount = int(random(1, 3));
-        for (int i = 0; i < ashCount; i++) {
-          float offsetX = random(-f.size, f.size);
-          float offsetY = random(-f.size, f.size);
-          Particle ash = new Particle(
-            f.position.x + offsetX,
-            f.position.y + offsetY,
-            1  // type 1 = ash
-          );
-          particles.add(ash);
-        }
+        dyingFlowers.add(f);
       }
+    }
+
+    // Randomly select 1-2 branches to spawn ash from
+    int branchSpawnCount = min(int(random(1, 3)), dyingBranches.size());
+    for (int i = 0; i < branchSpawnCount && particles.size() < maxParticles; i++) {
+      int index = int(random(dyingBranches.size()));
+      Branch b = dyingBranches.get(index);
+      PVector ashPos = b.getAshPosition();
+
+      // Spawn 1 ash particle
+      float offsetX = random(-3, 3);
+      float offsetY = random(-3, 3);
+      Particle ash = new Particle(
+        ashPos.x + offsetX,
+        ashPos.y + offsetY,
+        1  // type 1 = ash
+      );
+      particles.add(ash);
+    }
+
+    // Randomly select 1-3 flowers to spawn ash from
+    int flowerSpawnCount = min(int(random(1, 4)), dyingFlowers.size());
+    for (int i = 0; i < flowerSpawnCount && particles.size() < maxParticles; i++) {
+      int index = int(random(dyingFlowers.size()));
+      Flower f = dyingFlowers.get(index);
+
+      // Spawn 1 ash particle
+      float offsetX = random(-f.size, f.size);
+      float offsetY = random(-f.size, f.size);
+      Particle ash = new Particle(
+        f.position.x + offsetX,
+        f.position.y + offsetY,
+        1  // type 1 = ash
+      );
+      particles.add(ash);
     }
   }
 
