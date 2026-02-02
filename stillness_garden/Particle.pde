@@ -38,7 +38,7 @@ class Particle {
       // Pollen: apply random wandering force (no gravity)
       velocity.x += random(-0.05, 0.05);
       velocity.y += random(-0.05, 0.05);
-      // Limit velocity for gentle floating
+      // Limit velocity for gentle floating (will be increased when wind applied)
       velocity.limit(0.5);
     } else {
       // Ash: apply gravity and slight horizontal drift
@@ -48,6 +48,14 @@ class Particle {
 
     position.add(velocity);
     lifespan -= 1;
+  }
+
+  // Apply wind force to particle
+  void applyWind(PVector windDir, float strength) {
+    velocity.x += windDir.x * strength;
+    velocity.y += windDir.y * strength;
+    // Allow higher velocity when wind is applied
+    velocity.limit(1.0);
   }
 
   // Draw particle with glow effect
