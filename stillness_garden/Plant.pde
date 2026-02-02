@@ -288,15 +288,18 @@ class Plant {
       Branch b = dyingBranches.get(index);
       PVector ashPos = b.getAshPosition();
 
-      // Spawn 1 ash particle
-      float offsetX = random(-3, 3);
-      float offsetY = random(-3, 3);
-      Particle ash = new Particle(
-        ashPos.x + offsetX,
-        ashPos.y + offsetY,
-        1  // type 1 = ash
-      );
-      particles.add(ash);
+      // Spawn 2-4 ash particles (increased for crumbling effect)
+      int particleCount = int(random(2, 5));
+      for (int j = 0; j < particleCount && particles.size() < maxParticles; j++) {
+        float offsetX = random(-5, 5);  // Wider spread
+        float offsetY = random(-5, 5);
+        Particle ash = new Particle(
+          ashPos.x + offsetX,
+          ashPos.y + offsetY,
+          1  // type 1 = ash
+        );
+        particles.add(ash);
+      }
     }
 
     // Randomly select 1-3 flowers to spawn ash from

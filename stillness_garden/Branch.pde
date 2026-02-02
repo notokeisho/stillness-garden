@@ -11,6 +11,8 @@ class Branch {
   color baseColor;
   int flowerInterval;       // Points between each flower
   int lastFlowerPointCount; // Point count when last flower was spawned
+  int dyingTimer;           // Frames since dying started
+  int colorTransitionTime = 60;  // 1 second at 60fps
 
   // Constructor
   Branch(float startX, float startY, float initialAngle) {
@@ -99,7 +101,7 @@ class Branch {
     endShape();
   }
 
-  // Display dying branch (ash spreading from root to tip)
+  // Display dying branch (ash spreading from root to tip with color gradient)
   void displayDying() {
     // Find the point index where ash has reached
     float traveled = 0;
@@ -118,12 +120,17 @@ class Branch {
       ashIndex = i;
     }
 
-    // Draw the remaining alive part (from ash position to tip)
+    // Draw the remaining alive part (from ash position to tip) with time-based color
     if (ashIndex < points.size() - 1) {
+      // Calculate color based on time (0 = green, 3 seconds = gray)
+      float t = (float)dyingTimer / colorTransitionTime;
+      t = constrain(t, 0, 1);
+      color decayColor = color(100, 100, 100);  // Gray color for decay
+      color currentColor = lerpColor(baseColor, decayColor, t);
       int lastIndex = points.size() - 1;
 
-      // Single glow layer for alive part
-      stroke(baseColor, 30);
+      // Single glow layer for decaying part
+      stroke(currentColor, 30);
       strokeWeight(3);
       noFill();
 
@@ -138,8 +145,8 @@ class Branch {
       }
       endShape();
 
-      // Main line for alive part
-      stroke(baseColor, 200);
+      // Main line for decaying part
+      stroke(currentColor, 200);
       strokeWeight(1.5);
       noFill();
 
@@ -181,6 +188,7 @@ class Branch {
     growing = false;
     dying = true;
     ashProgress = 0;
+    dyingTimer = 0;  // Reset color transition timer
   }
 
   // Update the dying process (ash spreads from root to tip)
@@ -190,6 +198,11 @@ class Branch {
     // Ash progress speed: 1.5x growth speed
     float ashSpeed = growthSpeed * 1.5;
     ashProgress += ashSpeed;
+
+    // Update color transition timer
+    if (dyingTimer < colorTransitionTime) {
+      dyingTimer++;
+    }
   }
 
   // Check if branch has fully withered
