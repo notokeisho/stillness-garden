@@ -320,6 +320,125 @@ float easeOutCubic(float t) {
 - 1.5秒かけて: 徐々に現在の明るさ・サイズに成長
 - 「ふわっと現れる」自然な印象になる
 
+### Task 2.8: 花の位置と完了フェーズの改善
+
+**背景**:
+- 花が40個で止まると、最後の1本以外の枝は茎のまま終わってしまう
+- 画面外で花が咲くと、画面内の花が少なくなることがある
+
+**修正内容**:
+- [x] Plantクラスに画面内判定のヘルパー関数を追加
+- [x] Plantクラスに枝の画面内ランダム位置取得関数を追加
+- [x] 通常成長時の花生成ロジックを変更（画面外なら画面内に咲く）
+- [x] 完了フェーズで先端に花がない枝に花を追加（距離チェック方式）
+
+**実装詳細**:
+
+1. Branchクラスにフラグ追加:
+
+```java
+boolean hasFlowerAtTip = false;  // 先端に花があるか
+```
+
+2. Plantクラスにヘルパー関数追加:
+
+```java
+// 位置が画面内かチェック
+boolean isOnScreen(float x, float y) {
+  return x >= 0 && x <= width && y >= 0 && y <= height;
+}
+
+// 枝の画面内のランダムな位置を取得
+PVector getRandomOnScreenPosition(Branch b) {
+  ArrayList<PVector> onScreenPoints = new ArrayList<PVector>();
+  for (PVector p : b.points) {
+    if (isOnScreen(p.x, p.y)) {
+      onScreenPoints.add(p);
+    }
+  }
+  if (onScreenPoints.size() == 0) {
+    return null;  // 全て画面外の場合
+  }
+  return onScreenPoints.get(int(random(onScreenPoints.size())));
+}
+```
+
+3. 通常成長時の花生成ロジック変更:
+
+```java
+if (b.isReadyForFlower()) {
+  if (flowers.size() < maxFlowers) {
+    if (random(1) < 0.33) {
+      PVector tip = b.getTip();
+      PVector flowerPos;
+
+      if (isOnScreen(tip.x, tip.y)) {
+        // 先端が画面内 → 先端に咲く
+        flowerPos = tip;
+        b.hasFlowerAtTip = true;
+      } else {
+        // 先端が画面外 → 画面内のランダムな位置に咲く
+        flowerPos = getRandomOnScreenPosition(b);
+      }
+
+      if (flowerPos != null) {
+        Flower f = new Flower(flowerPos.x, flowerPos.y);
+        flowers.add(f);
+      }
+    }
+  }
+  b.flowerSpawned();
+}
+```
+
+4. 完了フェーズの追加（40個到達時）:
+
+```java
+if (!reachedFlowerLimit && flowers.size() >= maxFlowers) {
+  reachedFlowerLimit = true;
+
+  // 全ての枝の成長を停止
+  for (Branch b : branches) {
+    b.growing = false;
+  }
+
+  // 先端に花がない枝に花を追加
+  for (Branch b : branches) {
+    if (!b.hasFlowerAtTip) {
+      PVector tip = b.getTip();
+      PVector flowerPos;
+
+      if (isOnScreen(tip.x, tip.y)) {
+        flowerPos = tip;
+      } else {
+        flowerPos = getRandomOnScreenPosition(b);
+      }
+
+      if (flowerPos != null) {
+        Flower f = new Flower(flowerPos.x, flowerPos.y);
+        flowers.add(f);
+      }
+    }
+  }
+
+  // 風向きを設定
+  windDirection = new PVector(random(-1, 1), random(-0.3, 0.3));
+  windDirection.normalize();
+}
+```
+
+**変更ファイル**:
+| ファイル | 変更内容 |
+|----------|----------|
+| Branch.pde | `hasFlowerAtTip` フラグ追加 |
+| Plant.pde | ヘルパー関数2つ追加、花生成ロジック変更、完了フェーズ追加 |
+
+**期待する動作**:
+- 全ての枝に見える形で花がある
+- 画面内がバランス良く花で埋まる
+- 「茎だけで終わっている枝」がなくなる
+- 最大花数: 40 + (枝の数 - 1) 個
+
 ---
 
 ## Phase 3: メインファイルの実装
@@ -424,6 +543,7 @@ float easeOutCubic(float t) {
 | Task 2.5 | 2026-02-02 | 風システム追加（strength=0.05, limit=1.0） |
 | Task 2.6 | 2026-02-02 | 花粉の個別タイマー実装、上限後は2倍生成 |
 | Task 2.7 | 2026-02-02 | パーティクルのフェードイン効果（1.5秒、easeOutCubic） |
+| Task 2.8 | 2026-02-02 | 花の位置改善、完了フェーズで距離チェック方式に修正 |
 | Task 3.1 | - | - |
 | Task 3.2 | - | - |
 | Task 3.2.1 | - | - |
