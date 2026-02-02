@@ -14,6 +14,8 @@ class Flower {
   float bloomSpeed;
   float dyingSpeed;
   int flowerType;  // 0: pink, 1: white
+  int pollenTimer;     // Pollen spawn timer (individual per flower)
+  int pollenInterval;  // Pollen spawn interval (varies per flower)
 
   // Constructor
   Flower(float x, float y) {
@@ -30,6 +32,10 @@ class Flower {
 
     // Randomly choose flower type
     flowerType = int(random(2));  // 0 or 1
+
+    // Initialize pollen timer with random offset (stagger spawn times)
+    pollenTimer = int(random(60));
+    pollenInterval = int(random(40, 80));  // 40-80 frames between spawns
 
     if (flowerType == 0) {
       // Pale pink flower
@@ -123,6 +129,18 @@ class Flower {
   // Check if flower is fully bloomed
   boolean isFullyBloomed() {
     return bloomProgress >= 1.0;
+  }
+
+  // Check if this flower should spawn pollen (individual timer)
+  boolean shouldSpawnPollen() {
+    if (!isFullyBloomed() || dying) return false;
+
+    pollenTimer++;
+    if (pollenTimer >= pollenInterval) {
+      pollenTimer = 0;
+      return true;
+    }
+    return false;
   }
 
   // Start the dying (withering) process
