@@ -439,6 +439,142 @@ if (!reachedFlowerLimit && flowers.size() >= maxFlowers) {
 - 「茎だけで終わっている枝」がなくなる
 - 最大花数: 40 + (枝の数 - 1) 個
 
+### Task 2.9: 花の散るタイミングと散り方の改善
+
+**背景**:
+- 現状: 全ての花が同時に薄くなって消える
+- 理想: 灰化が到達した順に花びらがパッと弾けて散る
+
+**修正内容**:
+- [x] Flowerクラスに親枝の参照を追加（parentBranch）
+- [x] 花生成時に親枝を渡すように変更
+- [x] Particleクラスに花びらタイプ（type 2）を追加
+- [x] Plant.updateDying()で灰化位置と花の距離をチェック
+- [x] 灰化が到達したら花びらパーティクルを生成して花を非表示に
+
+**実装詳細**:
+
+1. Flowerクラスに親枝を追加:
+
+```java
+Branch parentBranch;  // 親の枝
+
+Flower(float x, float y, Branch parent) {
+  // ...
+  parentBranch = parent;
+}
+```
+
+2. Particleクラスに花びらタイプを追加:
+
+```java
+// type 2 = petal (花びら)
+if (particleType == 2) {
+  // 重力で落下 + 少し揺れる
+  velocity.y += 0.03;
+  velocity.x += random(-0.02, 0.02);
+}
+```
+
+3. Plant.updateDying()で灰化到達チェック:
+
+```java
+for (Branch b : branches) {
+  if (b.dying) {
+    PVector ashPos = b.getAshPosition();
+    for (Flower f : flowers) {
+      if (f.parentBranch == b && !f.dying) {
+        if (dist(ashPos.x, ashPos.y, f.position.x, f.position.y) < 15) {
+          spawnPetals(f);  // 花びらを生成
+          f.startDying();  // 花を非表示に
+        }
+      }
+    }
+  }
+}
+```
+
+4. 花びら生成メソッド:
+
+```java
+void spawnPetals(Flower f) {
+  for (int i = 0; i < f.petalCount; i++) {
+    float angle = TWO_PI / f.petalCount * i + f.rotation;
+    float speed = random(1.5, 3.0);  // 弾ける速度
+    Particle petal = new Particle(
+      f.position.x, f.position.y,
+      2,  // type 2 = petal
+      cos(angle) * speed,  // 初期速度X
+      sin(angle) * speed,  // 初期速度Y
+      f.petalColor         // 花びらの色
+    );
+    particles.add(petal);
+  }
+}
+```
+
+**変更ファイル**:
+| ファイル | 変更内容 |
+|----------|----------|
+| Flower.pde | parentBranch追加、コンストラクタ変更 |
+| Particle.pde | 花びらタイプ追加、新コンストラクタ |
+| Plant.pde | 花生成時に枝を渡す、灰化チェック、花びら生成 |
+
+**期待する動作**:
+- 灰化が花に近づいたら（15ピクセル以内）花が散る
+- 花びらが外向きにパッと弾ける
+- 花びらが重力で落下しながらフェードアウト
+- 枝の根本側の花から順番に散っていく
+
+### Task 2.10: 枝の描画パフォーマンス最適化
+
+**背景**:
+- 花が満開になるとFPSが7程度まで低下
+- 調査の結果、原因は枝の描画（花やパーティクルではない）
+- 枝は毎フレーム1ポイント追加（2px/frame）
+- 30秒の成長で1800ポイント/枝、5-8本で9,000-14,400ポイント
+- 各ポイントで2回のvertex()呼び出し（グロー + メイン）
+- ピーク時に28,800回のvertex()呼び出し/フレーム
+
+**修正内容**:
+- [x] Branch.displayAlive()でポイントを間引いて描画（1つおき）
+- [x] Branch.displayDying()でポイントを間引いて描画（1つおき）
+
+**実装詳細**:
+
+1. displayAlive()の最適化:
+
+```java
+// Before: 全ポイント描画
+for (int i = 0; i < points.size(); i++) {
+  PVector p = points.get(i);
+  vertex(p.x, p.y);
+}
+
+// After: 1つおきに描画（最後のポイントは必ず描画）
+for (int i = 0; i < points.size(); i += 2) {
+  PVector p = points.get(i);
+  vertex(p.x, p.y);
+}
+// 最後のポイントを確実に描画
+if (points.size() % 2 == 0) {
+  PVector last = points.get(points.size() - 1);
+  vertex(last.x, last.y);
+}
+```
+
+2. displayDying()も同様に最適化
+
+**変更ファイル**:
+| ファイル | 変更内容 |
+|----------|----------|
+| Branch.pde | displayAlive(), displayDying()でポイント間引き |
+
+**期待する効果**:
+- 描画コスト約50%削減
+- ポイントは2pxごとなので、間引いても見た目はほぼ変わらない
+- FPS 50以上を維持
+
 ---
 
 ## Phase 3: メインファイルの実装
@@ -544,6 +680,8 @@ if (!reachedFlowerLimit && flowers.size() >= maxFlowers) {
 | Task 2.6 | 2026-02-02 | 花粉の個別タイマー実装、上限後は2倍生成 |
 | Task 2.7 | 2026-02-02 | パーティクルのフェードイン効果（1.5秒、easeOutCubic） |
 | Task 2.8 | 2026-02-02 | 花の位置改善、完了フェーズで距離チェック方式に修正 |
+| Task 2.9 | 2026-02-03 | 花の散るタイミング改善、花びらパーティクル追加 |
+| Task 2.10 | 2026-02-03 | 枝のポイント間引き描画でパフォーマンス改善 |
 | Task 3.1 | - | - |
 | Task 3.2 | - | - |
 | Task 3.2.1 | - | - |
