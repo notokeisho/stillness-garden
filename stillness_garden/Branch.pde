@@ -62,7 +62,7 @@ class Branch {
     }
   }
 
-  // Display alive branch (optimized: vertex instead of curveVertex, 1 glow layer)
+  // Display alive branch (optimized: vertex instead of curveVertex, 1 glow layer, point decimation)
   void displayAlive() {
     // Draw single glow layer
     stroke(baseColor, 30);
@@ -70,9 +70,14 @@ class Branch {
     noFill();
 
     beginShape();
-    for (int i = 0; i < points.size(); i++) {
+    for (int i = 0; i < points.size(); i += 2) {
       PVector p = points.get(i);
       vertex(p.x, p.y);
+    }
+    // Ensure last point is drawn
+    if (points.size() % 2 == 0 && points.size() > 0) {
+      PVector last = points.get(points.size() - 1);
+      vertex(last.x, last.y);
     }
     endShape();
 
@@ -82,9 +87,14 @@ class Branch {
     noFill();
 
     beginShape();
-    for (int i = 0; i < points.size(); i++) {
+    for (int i = 0; i < points.size(); i += 2) {
       PVector p = points.get(i);
       vertex(p.x, p.y);
+    }
+    // Ensure last point is drawn
+    if (points.size() % 2 == 0 && points.size() > 0) {
+      PVector last = points.get(points.size() - 1);
+      vertex(last.x, last.y);
     }
     endShape();
   }
@@ -110,15 +120,21 @@ class Branch {
 
     // Draw the remaining alive part (from ash position to tip)
     if (ashIndex < points.size() - 1) {
+      int lastIndex = points.size() - 1;
+
       // Single glow layer for alive part
       stroke(baseColor, 30);
       strokeWeight(3);
       noFill();
 
       beginShape();
-      for (int i = ashIndex; i < points.size(); i++) {
+      for (int i = ashIndex; i < points.size(); i += 2) {
         PVector p = points.get(i);
         vertex(p.x, p.y);
+      }
+      // Ensure last point is drawn
+      if ((lastIndex - ashIndex) % 2 != 0) {
+        vertex(points.get(lastIndex).x, points.get(lastIndex).y);
       }
       endShape();
 
@@ -128,9 +144,13 @@ class Branch {
       noFill();
 
       beginShape();
-      for (int i = ashIndex; i < points.size(); i++) {
+      for (int i = ashIndex; i < points.size(); i += 2) {
         PVector p = points.get(i);
         vertex(p.x, p.y);
+      }
+      // Ensure last point is drawn
+      if ((lastIndex - ashIndex) % 2 != 0) {
+        vertex(points.get(lastIndex).x, points.get(lastIndex).y);
       }
       endShape();
     }
