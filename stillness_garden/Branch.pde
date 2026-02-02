@@ -62,27 +62,19 @@ class Branch {
     }
   }
 
-  // Display alive branch
+  // Display alive branch (optimized: vertex instead of curveVertex, 1 glow layer)
   void displayAlive() {
-    // Draw glow layers (larger, more transparent)
-    for (int layer = 3; layer > 0; layer--) {
-      float weight = layer * 2;
-      float alpha = 30.0 / layer;
-      stroke(baseColor, alpha);
-      strokeWeight(weight);
-      noFill();
+    // Draw single glow layer
+    stroke(baseColor, 30);
+    strokeWeight(3);
+    noFill();
 
-      beginShape();
-      for (int i = 0; i < points.size(); i++) {
-        PVector p = points.get(i);
-        curveVertex(p.x, p.y);
-        // Duplicate first and last points for curveVertex
-        if (i == 0 || i == points.size() - 1) {
-          curveVertex(p.x, p.y);
-        }
-      }
-      endShape();
+    beginShape();
+    for (int i = 0; i < points.size(); i++) {
+      PVector p = points.get(i);
+      vertex(p.x, p.y);
     }
+    endShape();
 
     // Draw main branch line
     stroke(baseColor, 200);
@@ -92,10 +84,7 @@ class Branch {
     beginShape();
     for (int i = 0; i < points.size(); i++) {
       PVector p = points.get(i);
-      curveVertex(p.x, p.y);
-      if (i == 0 || i == points.size() - 1) {
-        curveVertex(p.x, p.y);
-      }
+      vertex(p.x, p.y);
     }
     endShape();
   }
@@ -121,24 +110,17 @@ class Branch {
 
     // Draw the remaining alive part (from ash position to tip)
     if (ashIndex < points.size() - 1) {
-      // Glow layers for alive part
-      for (int layer = 3; layer > 0; layer--) {
-        float weight = layer * 2;
-        float alpha = 30.0 / layer;
-        stroke(baseColor, alpha);
-        strokeWeight(weight);
-        noFill();
+      // Single glow layer for alive part
+      stroke(baseColor, 30);
+      strokeWeight(3);
+      noFill();
 
-        beginShape();
-        for (int i = ashIndex; i < points.size(); i++) {
-          PVector p = points.get(i);
-          curveVertex(p.x, p.y);
-          if (i == ashIndex || i == points.size() - 1) {
-            curveVertex(p.x, p.y);
-          }
-        }
-        endShape();
+      beginShape();
+      for (int i = ashIndex; i < points.size(); i++) {
+        PVector p = points.get(i);
+        vertex(p.x, p.y);
       }
+      endShape();
 
       // Main line for alive part
       stroke(baseColor, 200);
@@ -148,10 +130,7 @@ class Branch {
       beginShape();
       for (int i = ashIndex; i < points.size(); i++) {
         PVector p = points.get(i);
-        curveVertex(p.x, p.y);
-        if (i == ashIndex || i == points.size() - 1) {
-          curveVertex(p.x, p.y);
-        }
+        vertex(p.x, p.y);
       }
       endShape();
     }
