@@ -618,9 +618,9 @@ if (dying && dyingProgress >= 1.0) return;  // 既存のコード
 - 理想: 腐敗が視覚的に伝わり、粉々になっていく感じを出す
 
 **修正内容**:
-- [ ] Branch.displayDying()で灰化位置に近いほど色を灰色にグラデーション
-- [ ] Branch.displayDying()で灰化先端の粒子生成量を増加（Plant側で制御）
-- [ ] Plant.spawnAsh()で灰化先端から多くの粒子を生成
+- [x] Branch.displayDying()で時間ベースの色変化（1秒で緑→灰色）
+- [x] Branch.displayDying()で灰化先端の粒子生成量を増加（Plant側で制御）
+- [x] Plant.spawnAsh()で灰化先端から多くの粒子を生成
 
 **実装詳細**:
 
@@ -889,7 +889,7 @@ void update() {
 | Task 2.9 | 2026-02-03 | 花の散るタイミング改善、花びらパーティクル追加 |
 | Task 2.10 | 2026-02-03 | 枝のポイント間引き描画でパフォーマンス改善 |
 | Task 2.11 | 2026-02-03 | 花の即消え実装、startDying()でdyingProgress=1.0に設定 |
-| Task 2.12 | - | - |
+| Task 2.12 | 2026-02-03 | 茎の腐敗表現（1秒で色変化、灰粒子増量） |
 | Task 2.13 | - | - |
 | Task 3.1 | - | - |
 | Task 3.2 | - | - |
