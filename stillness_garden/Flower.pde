@@ -148,7 +148,7 @@ class Flower {
   // Start the dying (withering) process
   void startDying() {
     dying = true;
-    dyingProgress = 0;
+    dyingProgress = 1.0;  // Instantly dead (no fade out)
   }
 
   // Update the dying process (fade to gray and disappear)
