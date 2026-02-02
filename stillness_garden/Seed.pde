@@ -7,7 +7,7 @@ class Seed {
   float maxGlowSize;
   float pulsePhase;  // For subtle pulsing animation
   color seedColor;
-  int germinationTime = 600;    // 10 seconds at 60fps
+  int germinationTime;          // 1-10 seconds at 60fps (randomized per seed)
   int germinationTimer = 0;     // Timer for germination
   boolean sprouted = false;     // Whether seed has sprouted
   float sizeMultiplier = 0.8;   // Start at 80% size
@@ -20,6 +20,7 @@ class Seed {
     glowSize = 0;  // Start small and grow
     pulsePhase = 0;
     seedColor = color(255, 255, 255);  // White, glowing
+    germinationTime = int(random(60, 601));  // 1-10 seconds randomized
   }
 
   // Update seed state
