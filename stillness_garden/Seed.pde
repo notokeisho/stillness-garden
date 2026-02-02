@@ -7,6 +7,10 @@ class Seed {
   float maxGlowSize;
   float pulsePhase;  // For subtle pulsing animation
   color seedColor;
+  int germinationTime = 600;    // 10 seconds at 60fps
+  int germinationTimer = 0;     // Timer for germination
+  boolean sprouted = false;     // Whether seed has sprouted
+  float sizeMultiplier = 0.8;   // Start at 80% size
 
   // Constructor
   Seed(float x, float y) {
@@ -22,6 +26,20 @@ class Seed {
   void update() {
     if (!alive) return;
 
+    // Germination phase: wait before sprouting
+    if (!sprouted) {
+      germinationTimer++;
+
+      // Grow size from 80% to 100%
+      float progress = (float)germinationTimer / germinationTime;
+      progress = constrain(progress, 0, 1);
+      sizeMultiplier = lerp(0.8, 1.0, progress);
+
+      if (germinationTimer >= germinationTime) {
+        sprouted = true;
+      }
+    }
+
     // Grow glow size smoothly when first appearing
     if (glowSize < maxGlowSize) {
       glowSize += 0.5;
@@ -31,12 +49,17 @@ class Seed {
     pulsePhase += 0.05;
   }
 
+  // Check if seed is ready to sprout branches
+  boolean isReadyToSprout() {
+    return sprouted;
+  }
+
   // Draw seed with glow effect
   void display() {
     if (!alive) return;
 
     float pulse = sin(pulsePhase) * 2;  // Subtle size variation
-    float currentSize = glowSize + pulse;
+    float currentSize = (glowSize + pulse) * sizeMultiplier;  // Apply size multiplier
 
     noStroke();
 

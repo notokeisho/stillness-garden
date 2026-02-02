@@ -56,6 +56,11 @@ class Plant {
     // Update seed
     seed.update();
 
+    // Wait for seed to be ready before growing branches
+    if (!seed.isReadyToSprout()) {
+      return;  // Skip branch growth during germination
+    }
+
     // Check if flower limit is reached and stop branch growth
     if (!reachedFlowerLimit && flowers.size() >= maxFlowers) {
       reachedFlowerLimit = true;
