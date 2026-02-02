@@ -1,10 +1,14 @@
 // Stillness Garden - Main file
 // A meditative experience where stillness nurtures growth
 
-// ========== TEST CODE FOR TASK 2.2.1 ==========
+// ========== TEST CODE FOR TASK 2.3.1 ==========
 // This code will be removed after testing
 
 Plant testPlant;
+boolean drawBranches = true;
+boolean drawFlowers = true;
+boolean drawParticles = true;
+boolean useBlendMode = true;
 
 void setup() {
   size(800, 800, P2D);
@@ -17,39 +21,81 @@ void draw() {
   background(0);
 
   // Enable additive blending for glow effect
-  blendMode(ADD);
+  if (useBlendMode) {
+    blendMode(ADD);
+  }
 
   if (testPlant != null) {
-    // Update and display plant
+    // Update plant
     testPlant.update();
-    testPlant.display();
+
+    // Display with toggles for debugging
+    if (drawBranches) {
+      for (Branch b : testPlant.branches) {
+        b.display();
+      }
+    }
+    if (drawFlowers) {
+      for (Flower f : testPlant.flowers) {
+        f.display();
+      }
+    }
+    if (testPlant.seed.alive) {
+      testPlant.seed.display();
+    }
+    if (drawParticles) {
+      for (Particle p : testPlant.particles) {
+        p.display();
+      }
+    }
+
+    // Remove plant if fully dead
+    if (testPlant.isFullyDead()) {
+      testPlant = null;
+    }
   }
 
   // Reset blend mode
   blendMode(BLEND);
 
-  // Display instructions
+  // Display FPS and instructions
   fill(255);
   textSize(14);
+  text("FPS: " + nf(frameRate, 1, 1), 20, 15);
   text("Click to spawn a new plant", 20, 30);
-  text("Press SPACE to clear", 20, 50);
+  text("Press 'D' to start dying", 20, 50);
+  text("Press SPACE to clear", 20, 70);
+  text("Toggle: 1=Branches(" + drawBranches + ") 2=Flowers(" + drawFlowers + ") 3=Particles(" + drawParticles + ") 4=BlendMode(" + useBlendMode + ")", 20, 85);
 
   if (testPlant != null) {
-    text("Branches: " + testPlant.branches.size(), 20, 80);
-    text("Flowers: " + testPlant.flowers.size(), 20, 100);
-    text("Particles: " + testPlant.particles.size(), 20, 120);
+    String status = testPlant.dying ? "DYING" : "ALIVE";
+    text("Status: " + status, 20, 100);
+    text("Branches: " + testPlant.branches.size(), 20, 120);
+    text("Flowers: " + testPlant.flowers.size(), 20, 140);
+    text("Particles: " + testPlant.particles.size(), 20, 160);
 
-    // Show first few branch point counts
-    int yOffset = 150;
-    int showCount = min(testPlant.branches.size(), 8);
-    for (int i = 0; i < showCount; i++) {
-      Branch b = testPlant.branches.get(i);
-      String status = b.growing ? "growing" : "stopped";
-      text("Branch " + i + ": " + b.points.size() + " pts (" + status + ")", 20, yOffset);
-      yOffset += 18;
+    // Debug: show total branch points
+    int totalPoints = 0;
+    for (Branch b : testPlant.branches) {
+      totalPoints += b.points.size();
+    }
+    text("Total branch points: " + totalPoints, 20, 220);
+
+    if (testPlant.dying) {
+      // Show dying progress
+      int deadBranches = 0;
+      int deadFlowers = 0;
+      for (Branch b : testPlant.branches) {
+        if (b.isFullyDead()) deadBranches++;
+      }
+      for (Flower f : testPlant.flowers) {
+        if (f.isDead()) deadFlowers++;
+      }
+      text("Dead branches: " + deadBranches + "/" + testPlant.branches.size(), 20, 180);
+      text("Dead flowers: " + deadFlowers + "/" + testPlant.flowers.size(), 20, 200);
     }
   } else {
-    text("No plant yet. Click to create one.", 20, 80);
+    text("No plant. Click to create one.", 20, 100);
   }
 }
 
@@ -62,6 +108,17 @@ void keyPressed() {
   if (key == ' ') {
     // Clear plant
     testPlant = null;
+  } else if ((key == 'd' || key == 'D') && testPlant != null && !testPlant.dying) {
+    // Start dying
+    testPlant.startDying();
+  } else if (key == '1') {
+    drawBranches = !drawBranches;
+  } else if (key == '2') {
+    drawFlowers = !drawFlowers;
+  } else if (key == '3') {
+    drawParticles = !drawParticles;
+  } else if (key == '4') {
+    useBlendMode = !useBlendMode;
   }
 }
 
