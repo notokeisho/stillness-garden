@@ -93,28 +93,28 @@
 
 ### Task 1.4: Flower クラスの実装
 
-- [ ] プロパティの定義（position, petalCount, size, bloomProgress, etc.）
-- [ ] コンストラクタの実装
-- [ ] bloom() メソッドの実装（開花アニメーション）
-- [ ] display() メソッドの実装（花びら描画、グロー効果含む）
-- [ ] isFullyBloomed() メソッドの実装
+- [x] プロパティの定義（position, petalCount, size, bloomProgress, etc.）
+- [x] コンストラクタの実装
+- [x] bloom() メソッドの実装（開花アニメーション）
+- [x] display() メソッドの実装（花びら描画、グロー効果含む）
+- [x] isFullyBloomed() メソッドの実装
 
 ### Task 1.4.1: Flower 開花の単体動作確認
 
-- [ ] メインファイルで Flower を表示して開花を確認
-- [ ] 花びら（5〜6枚）が正常に描画されるか確認
-- [ ] 淡いピンクの色とグロー効果を確認
+- [x] メインファイルで Flower を表示して開花を確認
+- [x] 花びら（5〜6枚）が正常に描画されるか確認
+- [x] 淡いピンクの色とグロー効果を確認
 
 ### Task 1.4.2: Flower クラスの実装（灰化機能）
 
-- [ ] startDying() メソッドの実装
-- [ ] updateDying() メソッドの実装
-- [ ] isDead() メソッドの実装
+- [x] startDying() メソッドの実装
+- [x] updateDying() メソッドの実装
+- [x] isDead() メソッドの実装
 
 ### Task 1.4.3: Flower 灰化の単体動作確認
 
-- [ ] 開花後に灰化を開始して動作確認
-- [ ] 灰化が正常に進行するか確認
+- [x] 開花後に灰化を開始して動作確認
+- [x] 灰化が正常に進行するか確認
 
 ---
 
@@ -122,39 +122,159 @@
 
 ### Task 2.1: Plant クラスの実装（基本構造）
 
-- [ ] プロパティの定義（seed, branches, flowers, particles, alive, dying, etc.）
-- [ ] コンストラクタの実装
-- [ ] initBranches() メソッドの実装（5〜8本をランダムな方向に生成）
+- [x] プロパティの定義（seed, branches, flowers, particles, alive, dying, etc.）
+- [x] コンストラクタの実装
+- [x] initBranches() メソッドの実装（5〜8本をランダムな方向に生成）
 
 ### Task 2.1.1: Plant 初期化の動作確認
 
-- [ ] メインファイルで Plant を生成して枝の初期化を確認
-- [ ] 5〜8本の枝がランダムな方向に向いているか確認
+- [x] メインファイルで Plant を生成して枝の初期化を確認
+- [x] 5〜8本の枝がランダムな方向に向いているか確認
 
 ### Task 2.2: Plant クラスの実装（成長処理）
 
-- [ ] update() メソッドの実装（枝の成長更新）
-- [ ] 花の生成タイミング制御（枝が一定長さになったら花を追加）
-- [ ] spawnPollen() メソッドの実装（花粉粒子生成）
-- [ ] display() メソッドの実装（レイヤー順序を考慮）
+- [x] update() メソッドの実装（枝の成長更新）
+- [x] 花の生成タイミング制御（枝が一定長さになったら花を追加）
+- [x] spawnPollen() メソッドの実装（花粉粒子生成）
+- [x] display() メソッドの実装（レイヤー順序を考慮）
 
 ### Task 2.2.1: Plant 成長の動作確認
 
-- [ ] マウス位置に Plant を生成して成長を確認
-- [ ] 枝が伸び、花が咲き、花粉が舞うか確認
+- [x] マウス位置に Plant を生成して成長を確認
+- [x] 枝が伸び、花が咲き、花粉が舞うか確認
 
 ### Task 2.3: Plant クラスの実装（灰化処理）
 
-- [ ] startDying() メソッドの実装（種が消え、枝の灰化開始）
-- [ ] update() に灰化中の処理を追加
-- [ ] spawnAsh() メソッドの実装（灰粒子生成）
-- [ ] isFullyDead() メソッドの実装
+- [x] startDying() メソッドの実装（種が消え、枝の灰化開始）
+- [x] update() に灰化中の処理を追加
+- [x] spawnAsh() メソッドの実装（灰粒子生成）
+- [x] isFullyDead() メソッドの実装
 
 ### Task 2.3.1: Plant 灰化の動作確認
 
 - [ ] 成長後に灰化を開始して動作確認
 - [ ] 種が消え、枝が根本から灰化し、灰が落ちるか確認
 - [ ] 全要素が消えた後に isFullyDead() が true になるか確認
+
+### Task 2.4: 花と花粉のバランス調整
+
+**背景**: 花が等間隔で咲きすぎて上限に達すると、枝だけが伸び続けて見栄えが悪い
+
+**修正内容**:
+- [x] 花の生成確率を1/3に変更（各枝ごとにランダム）
+- [x] 花が上限（40個）に達したら枝の成長を停止
+- [x] reachedFlowerLimitフラグを追加
+- [x] 通常時の花粉: 3-6個の花から30フレームごとに生成
+- [x] 上限達成後の花粉: 全ての花から20フレームごとに生成
+
+**期待する動作**:
+| 項目 | 通常時 | 上限達成後 |
+|------|--------|-----------|
+| 枝の成長 | 伸び続ける | 停止 |
+| 花の生成 | 1/3確率で咲く | 咲かない |
+| 花粉の量 | 3-6個の花から | 全ての花から |
+| 花粉の頻度 | 30フレームごと | 20フレームごと |
+
+### Task 2.5: 成長停止後の風システム追加
+
+**背景**: 花粉がその場に留まり続け、特定の場所に溜まってしまう
+
+**修正内容**:
+- [x] Plantクラスに風の情報を追加（windDirection, windStrength）
+- [x] 成長停止時（reachedFlowerLimit）に風向きをランダムに決定
+- [x] update()で花粉（particleType == 0）に風を適用
+- [x] Particleの速度制限を調整（風で流れやすくする）
+
+**実装詳細**:
+
+1. Plantクラスに追加:
+```java
+PVector windDirection;     // 風向き
+float windStrength = 0.03; // 風の強さ
+```
+
+2. 成長停止時に風向きを決定:
+```java
+// 風向きをランダムに決定（主に横方向、少し上下）
+windDirection = new PVector(random(-1, 1), random(-0.3, 0.3));
+windDirection.normalize();
+```
+
+3. パーティクル更新時に風を適用:
+```java
+if (reachedFlowerLimit && p.particleType == 0) {
+  p.velocity.add(PVector.mult(windDirection, windStrength));
+}
+```
+
+4. Particleの速度制限を調整:
+```java
+// 通常時は0.5、風適用時は0.8に緩める
+velocity.limit(0.8);
+```
+
+**期待する動作**:
+| 項目 | 通常時 | 上限達成後 |
+|------|--------|-----------|
+| 花粉の動き | その場でふわふわ | 風に流されながらふわふわ |
+| 風向き | なし | ランダムな一方向 |
+
+### Task 2.6: 花粉生成タイミングの個別化
+
+**背景**: 全ての花から同時に花粉が生成され、「一斉に生成された感」がある
+
+**修正内容**:
+- [x] Flowerクラスに花粉生成用の個別タイマーを追加
+- [x] 花ごとに異なる生成間隔を設定
+- [x] Plant.spawnPollen()を各花の個別タイマーベースに変更
+
+**実装詳細**:
+
+1. Flowerクラスに追加:
+```java
+int pollenTimer;      // 花粉生成タイマー
+int pollenInterval;   // 花粉生成間隔（花ごとにランダム）
+
+// コンストラクタで初期化
+pollenTimer = int(random(60));      // 初期値をばらけさせる
+pollenInterval = int(random(40, 80)); // 間隔も花ごとに違う（40-80フレーム）
+```
+
+2. Flowerクラスにメソッド追加:
+```java
+// 花粉を生成すべきタイミングか判定
+boolean shouldSpawnPollen() {
+  if (!isFullyBloomed() || dying) return false;
+  pollenTimer++;
+  if (pollenTimer >= pollenInterval) {
+    pollenTimer = 0;
+    return true;
+  }
+  return false;
+}
+```
+
+3. Plant.spawnPollen()を修正:
+```java
+void spawnPollen() {
+  if (particles.size() >= maxParticles) return;
+
+  for (Flower f : flowers) {
+    if (f.shouldSpawnPollen()) {
+      // この花から花粉を生成
+      Particle pollen = new Particle(...);
+      particles.add(pollen);
+    }
+  }
+}
+```
+
+4. 花粉生成の呼び出しを毎フレームに変更（タイマーはFlower側で管理）
+
+**期待する動作**:
+- 各花が独立したタイミングで花粉を生成
+- 花ごとに生成間隔が異なる（40-80フレーム）
+- 初期タイマーがばらけているので、同時生成が起こりにくい
 
 ---
 
@@ -246,16 +366,19 @@
 | Task 1.3.1 | 2026-02-02 | Branch成長確認OK、色と速度を調整 |
 | Task 1.3.2 | 2026-02-02 | Branchの灰化機能を実装 |
 | Task 1.3.3 | 2026-02-02 | Branch灰化確認OK |
-| Task 1.4 | - | - |
-| Task 1.4.1 | - | - |
-| Task 1.4.2 | - | - |
-| Task 1.4.3 | - | - |
-| Task 2.1 | - | - |
-| Task 2.1.1 | - | - |
-| Task 2.2 | - | - |
-| Task 2.2.1 | - | - |
-| Task 2.3 | - | - |
-| Task 2.3.1 | - | - |
+| Task 1.4 | 2026-02-02 | Flowerクラスの開花機能を実装 |
+| Task 1.4.1 | 2026-02-02 | 開花確認OK、グロー強化、白い花を追加 |
+| Task 1.4.2 | 2026-02-02 | Flowerの灰化機能を実装 |
+| Task 1.4.3 | 2026-02-02 | 灰化確認OK、パーティクルはTask 2.3で実装 |
+| Task 2.1 | 2026-02-02 | Plantクラスの基本構造を実装 |
+| Task 2.1.1 | 2026-02-02 | Plant初期化確認OK |
+| Task 2.2 | 2026-02-02 | Plantの成長処理を実装 |
+| Task 2.2.1 | 2026-02-02 | 成長確認OK、花生成ロジック修正（25pt間隔、上限40） |
+| Task 2.3 | 2026-02-02 | Plantの灰化処理を実装 |
+| Task 2.3.1 | - | パフォーマンス調査中にデバッグ |
+| Task 2.4 | 2026-02-02 | 花生成確率1/3、上限で成長停止 |
+| Task 2.5 | 2026-02-02 | 風システム追加（strength=0.05, limit=1.0） |
+| Task 2.6 | 2026-02-02 | 花粉の個別タイマー実装、上限後は2倍生成 |
 | Task 3.1 | - | - |
 | Task 3.2 | - | - |
 | Task 3.2.1 | - | - |
