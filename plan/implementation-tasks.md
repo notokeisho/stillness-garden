@@ -575,6 +575,212 @@ if (points.size() % 2 == 0) {
 - ポイントは2pxごとなので、間引いても見た目はほぼ変わらない
 - FPS 50以上を維持
 
+### Task 2.11: 花の即消え
+
+**背景**:
+- 現状: 花が散る時、`dyingProgress`に応じてフェードアウトしており残像が残る
+- 理想: 灰が到達し花びらが散った瞬間に、花は完全に消える
+
+**修正内容**:
+- [x] Flower.display()で`dying`状態の場合は即座に描画をスキップ
+- [x] Flower.startDying()で`dyingProgress = 1.0`に設定し即座に死亡状態にする
+
+**実装詳細**:
+
+1. Flower.startDying()を修正:
+
+```java
+void startDying() {
+  dying = true;
+  dyingProgress = 1.0;  // 即座に死亡状態に
+}
+```
+
+2. Flower.display()は既に以下のチェックがある:
+
+```java
+if (dying && dyingProgress >= 1.0) return;  // 既存のコード
+```
+
+**変更ファイル**:
+| ファイル | 変更内容 |
+|----------|----------|
+| Flower.pde | startDying()でdyingProgress = 1.0に設定 |
+
+**期待する動作**:
+- 灰が到達 → 花びらパーティクル生成 → 花は即座に消える
+- フェードアウトの残像がなくなる
+
+### Task 2.12: 茎の腐敗表現
+
+**背景**:
+- 現状: 枝が縮む時、色は変わらず単純に消えていく
+- 理想: 腐敗が視覚的に伝わり、粉々になっていく感じを出す
+
+**修正内容**:
+- [ ] Branch.displayDying()で灰化位置に近いほど色を灰色にグラデーション
+- [ ] Branch.displayDying()で灰化先端の粒子生成量を増加（Plant側で制御）
+- [ ] Plant.spawnAsh()で灰化先端から多くの粒子を生成
+
+**実装詳細**:
+
+1. 色の変化（灰化位置に近いほど灰色に）:
+
+```java
+// displayDying()内で各頂点の色を計算
+void displayDying() {
+  // 灰化位置を計算
+  float ashTotalDist = ashProgress;
+
+  // 残っている部分を描画（ashIndexから先端まで）
+  beginShape();
+  for (int i = ashIndex; i < points.size(); i += 2) {
+    // この点から灰化位置までの距離を計算
+    float distFromAsh = calculateDistanceFromAsh(i);
+
+    // 距離に応じて色を補間（近いほど灰色）
+    float colorFactor = constrain(distFromAsh / 50.0, 0, 1);  // 50px範囲でグラデーション
+    color currentColor = lerpColor(color(100, 100, 100), baseColor, colorFactor);
+
+    stroke(currentColor, 200);
+    vertex(p.x, p.y);
+  }
+  endShape();
+}
+```
+
+2. 灰化先端からの粒子増加（Plant.spawnAsh()を修正）:
+
+```java
+void spawnAsh() {
+  // 既存: 1-2本の枝から1個ずつ
+  // 修正: 各枝から2-3個の粒子を生成
+
+  for (int i = 0; i < branchSpawnCount && particles.size() < maxParticles; i++) {
+    Branch b = dyingBranches.get(index);
+    PVector ashPos = b.getAshPosition();
+
+    // 2-3個の粒子を生成（増量）
+    int particleCount = int(random(2, 4));
+    for (int j = 0; j < particleCount; j++) {
+      float offsetX = random(-5, 5);  // 散らばり範囲を少し広げる
+      float offsetY = random(-5, 5);
+      Particle ash = new Particle(ashPos.x + offsetX, ashPos.y + offsetY, 1);
+      particles.add(ash);
+    }
+  }
+}
+```
+
+**変更ファイル**:
+| ファイル | 変更内容 |
+|----------|----------|
+| Branch.pde | displayDying()で灰化位置からの距離に応じた色グラデーション |
+| Plant.pde | spawnAsh()で灰化先端からの粒子数を増加 |
+
+**期待する動作**:
+- 灰化位置に近い部分は灰色、遠い部分は健康な緑色
+- 約50ピクセルの範囲でグラデーション
+- 灰化先端から粒子が多く溢れ出る（燃えて粉々になる感じ）
+
+### Task 2.13: 種の発芽遅延
+
+**背景**:
+- 現状: 種からすぐに茎が伸び始める
+- 理想: 10秒間種の状態を維持し、その間に少しずつ大きくなる
+
+**修正内容**:
+- [ ] Seedクラスに発芽タイマーと初期サイズを追加
+- [ ] Seed.update()で発芽前のサイズ成長アニメーション
+- [ ] Seed.isReadyToSprout()メソッドを追加
+- [ ] Plant.update()で種が発芽準備完了するまで枝の成長を待機
+
+**実装詳細**:
+
+1. Seedクラスに追加:
+
+```java
+int germinationTime = 600;  // 10秒（60fps * 10）
+int germinationTimer = 0;
+float initialSize;          // 初期サイズ
+float targetSize;           // 目標サイズ（現在のサイズ）
+boolean sprouted = false;   // 発芽済みフラグ
+
+// コンストラクタで初期化
+Seed(float x, float y) {
+  // ...
+  targetSize = size;           // 現在のサイズを目標に
+  initialSize = size * 0.8;    // 初期は80%のサイズ
+  size = initialSize;          // 最初は小さく
+}
+```
+
+2. Seed.update()を修正:
+
+```java
+void update() {
+  if (!alive) return;
+
+  if (!sprouted) {
+    germinationTimer++;
+
+    // サイズを徐々に成長
+    float progress = (float)germinationTimer / germinationTime;
+    progress = constrain(progress, 0, 1);
+    size = lerp(initialSize, targetSize, easeOutCubic(progress));
+
+    if (germinationTimer >= germinationTime) {
+      sprouted = true;
+    }
+  }
+
+  // グロー効果のアニメーション（既存コード）
+  glowPhase += 0.05;
+}
+```
+
+3. Seed.isReadyToSprout()を追加:
+
+```java
+boolean isReadyToSprout() {
+  return sprouted;
+}
+```
+
+4. Plant.update()を修正:
+
+```java
+void update() {
+  // ...
+  seed.update();
+
+  // 種が発芽準備完了するまで枝の成長を待機
+  if (!seed.isReadyToSprout()) {
+    return;  // 枝の成長をスキップ
+  }
+
+  // 以下、既存の枝成長コード
+  for (Branch b : branches) {
+    if (b.growing) {
+      b.grow();
+      // ...
+    }
+  }
+}
+```
+
+**変更ファイル**:
+| ファイル | 変更内容 |
+|----------|----------|
+| Seed.pde | 発芽タイマー、サイズ成長、isReadyToSprout()追加 |
+| Plant.pde | 種の発芽待機処理を追加 |
+
+**期待する動作**:
+- 種が出現してから10秒間は枝が伸びない
+- その間、種は80%→100%のサイズに徐々に成長
+- 10秒後に枝が伸び始める
+- 「種が力を蓄えている」感じが出る
+
 ---
 
 ## Phase 3: メインファイルの実装
@@ -682,6 +888,9 @@ if (points.size() % 2 == 0) {
 | Task 2.8 | 2026-02-02 | 花の位置改善、完了フェーズで距離チェック方式に修正 |
 | Task 2.9 | 2026-02-03 | 花の散るタイミング改善、花びらパーティクル追加 |
 | Task 2.10 | 2026-02-03 | 枝のポイント間引き描画でパフォーマンス改善 |
+| Task 2.11 | 2026-02-03 | 花の即消え実装、startDying()でdyingProgress=1.0に設定 |
+| Task 2.12 | - | - |
+| Task 2.13 | - | - |
 | Task 3.1 | - | - |
 | Task 3.2 | - | - |
 | Task 3.2.1 | - | - |
