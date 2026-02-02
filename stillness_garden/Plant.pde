@@ -59,10 +59,44 @@ class Plant {
     // Check if flower limit is reached and stop branch growth
     if (!reachedFlowerLimit && flowers.size() >= maxFlowers) {
       reachedFlowerLimit = true;
+
       // Stop all branch growth
       for (Branch b : branches) {
         b.growing = false;
       }
+
+      // Add flowers to branches without tip flowers (completion phase)
+      for (Branch b : branches) {
+        PVector tip = b.getTip();
+
+        // Check if any flower is near the tip (within 10 pixels)
+        boolean hasTipFlower = false;
+        for (Flower f : flowers) {
+          if (dist(f.position.x, f.position.y, tip.x, tip.y) < 10) {
+            hasTipFlower = true;
+            break;
+          }
+        }
+
+        // Add flower if tip doesn't have one
+        if (!hasTipFlower) {
+          PVector flowerPos;
+
+          if (isOnScreen(tip.x, tip.y)) {
+            // Tip is on-screen: spawn at tip
+            flowerPos = tip;
+          } else {
+            // Tip is off-screen: spawn at random on-screen position
+            flowerPos = getRandomOnScreenPosition(b);
+          }
+
+          if (flowerPos != null) {
+            Flower f = new Flower(flowerPos.x, flowerPos.y);
+            flowers.add(f);
+          }
+        }
+      }
+
       // Set random wind direction (mainly horizontal, slight vertical)
       windDirection = new PVector(random(-1, 1), random(-0.3, 0.3));
       windDirection.normalize();
@@ -79,8 +113,20 @@ class Plant {
             // 1/3 chance to spawn a flower
             if (random(1) < 0.33) {
               PVector tip = b.getTip();
-              Flower f = new Flower(tip.x, tip.y);
-              flowers.add(f);
+              PVector flowerPos;
+
+              if (isOnScreen(tip.x, tip.y)) {
+                // Tip is on-screen: spawn at tip
+                flowerPos = tip;
+              } else {
+                // Tip is off-screen: spawn at random on-screen position
+                flowerPos = getRandomOnScreenPosition(b);
+              }
+
+              if (flowerPos != null) {
+                Flower f = new Flower(flowerPos.x, flowerPos.y);
+                flowers.add(f);
+              }
             }
           }
           // Record point count regardless of whether flower was spawned
@@ -303,5 +349,24 @@ class Plant {
     }
 
     return true;
+  }
+
+  // Check if position is on screen
+  boolean isOnScreen(float x, float y) {
+    return x >= 0 && x <= width && y >= 0 && y <= height;
+  }
+
+  // Get a random on-screen position from a branch
+  PVector getRandomOnScreenPosition(Branch b) {
+    ArrayList<PVector> onScreenPoints = new ArrayList<PVector>();
+    for (PVector p : b.points) {
+      if (isOnScreen(p.x, p.y)) {
+        onScreenPoints.add(p);
+      }
+    }
+    if (onScreenPoints.size() == 0) {
+      return null;  // All points are off-screen
+    }
+    return onScreenPoints.get(int(random(onScreenPoints.size())));
   }
 }
