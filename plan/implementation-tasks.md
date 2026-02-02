@@ -276,6 +276,50 @@ void spawnPollen() {
 - 花ごとに生成間隔が異なる（40-80フレーム）
 - 初期タイマーがばらけているので、同時生成が起こりにくい
 
+### Task 2.7: パーティクルのフェードイン効果
+
+**背景**: 花粉・灰が生成された瞬間から最大の明るさ・サイズで表示され、「急に出現した感」がある
+
+**修正内容**:
+- [x] Particleクラスにフェードイン時間を追加（1.5秒 = 90フレーム）
+- [x] display()で経過フレームに応じてサイズと明るさを補間
+- [x] 花粉・灰の両方に適用
+
+**実装詳細**:
+
+1. Particleクラスにプロパティ追加:
+```java
+int fadeInDuration = 90;  // 1.5秒（90フレーム）
+```
+
+2. age（経過フレーム）の計算（新しい変数は不要）:
+```java
+float age = maxLifespan - lifespan;  // 生成からの経過フレーム
+```
+
+3. display()でフェードイン係数を計算:
+```java
+// フェードイン係数を計算（0.0 → 1.0）
+float fadeInProgress = min(1.0, age / fadeInDuration);
+float growthFactor = easeOutCubic(fadeInProgress);  // 滑らかに成長
+
+// サイズと明るさに適用
+float displaySize = size * growthFactor;
+float displayAlpha = baseAlpha * growthFactor;
+```
+
+4. easeOutCubic関数を追加:
+```java
+float easeOutCubic(float t) {
+  return 1 - pow(1 - t, 3);
+}
+```
+
+**期待する動作**:
+- 生成直後: 暗く・小さい状態
+- 1.5秒かけて: 徐々に現在の明るさ・サイズに成長
+- 「ふわっと現れる」自然な印象になる
+
 ---
 
 ## Phase 3: メインファイルの実装
@@ -379,6 +423,7 @@ void spawnPollen() {
 | Task 2.4 | 2026-02-02 | 花生成確率1/3、上限で成長停止 |
 | Task 2.5 | 2026-02-02 | 風システム追加（strength=0.05, limit=1.0） |
 | Task 2.6 | 2026-02-02 | 花粉の個別タイマー実装、上限後は2倍生成 |
+| Task 2.7 | 2026-02-02 | パーティクルのフェードイン効果（1.5秒、easeOutCubic） |
 | Task 3.1 | - | - |
 | Task 3.2 | - | - |
 | Task 3.2.1 | - | - |
