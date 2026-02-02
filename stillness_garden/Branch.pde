@@ -161,6 +161,18 @@ class Branch {
       }
       endShape();
     }
+
+    // Draw small bright point at ash position (only while branch exists)
+    if (!isFullyDead()) {
+      PVector ashPos = getAshPosition();
+      noStroke();
+      // Small glow
+      fill(180, 180, 180, 80);
+      ellipse(ashPos.x, ashPos.y, 6, 6);
+      // Bright center point
+      fill(220, 220, 220, 200);
+      ellipse(ashPos.x, ashPos.y, 3, 3);
+    }
   }
 
   // Get the tip (last point) of the branch

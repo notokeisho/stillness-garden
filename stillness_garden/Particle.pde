@@ -27,9 +27,15 @@ class Particle {
       particleColor = color(255, 255, 240);
       velocity = new PVector(random(-0.3, 0.3), random(-0.3, 0.3));
     } else {
-      // Ash: gray color, falls with gravity
+      // Ash: gray color, bursts outward then falls with gravity
       particleColor = color(180, 180, 180);
-      velocity = new PVector(random(-0.2, 0.2), random(0.5, 1.0));
+      // Burst outward in random direction
+      float burstAngle = random(TWO_PI);
+      float burstSpeed = random(0.5, 1.5);
+      velocity = new PVector(
+        cos(burstAngle) * burstSpeed,
+        sin(burstAngle) * burstSpeed - 0.5  // Slight upward bias
+      );
     }
   }
 
