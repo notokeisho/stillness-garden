@@ -8,6 +8,7 @@ class Particle {
   int particleType;  // 0: pollen, 1: ash
   float size;
   color particleColor;
+  int fadeInDuration = 90;  // 1.5 seconds fade-in
 
   // Constructor
   Particle(float x, float y, int type) {
@@ -58,22 +59,38 @@ class Particle {
     velocity.limit(1.0);
   }
 
-  // Draw particle with glow effect
+  // Draw particle with glow effect and fade-in
   void display() {
-    // Calculate alpha based on remaining lifespan
-    float alpha = map(lifespan, 0, maxLifespan, 0, 255);
+    // Calculate age (frames since creation)
+    float age = maxLifespan - lifespan;
+
+    // Calculate fade-in factor (0.0 to 1.0 over fadeInDuration)
+    float fadeInProgress = min(1.0, age / fadeInDuration);
+    float growthFactor = easeOutCubic(fadeInProgress);
+
+    // Calculate alpha based on remaining lifespan, then apply fade-in
+    float baseAlpha = map(lifespan, 0, maxLifespan, 0, 255);
+    float alpha = baseAlpha * growthFactor;
+
+    // Apply fade-in to size
+    float displaySize = size * growthFactor;
 
     noStroke();
 
     // Glow effect: draw larger transparent circles first
     for (int i = 3; i > 0; i--) {
       fill(particleColor, alpha / (i * 2));
-      ellipse(position.x, position.y, size * i, size * i);
+      ellipse(position.x, position.y, displaySize * i, displaySize * i);
     }
 
     // Core of particle
     fill(particleColor, alpha);
-    ellipse(position.x, position.y, size * 0.5, size * 0.5);
+    ellipse(position.x, position.y, displaySize * 0.5, displaySize * 0.5);
+  }
+
+  // Ease-out cubic for smooth fade-in animation
+  float easeOutCubic(float t) {
+    return 1 - pow(1 - t, 3);
   }
 
   // Check if particle should be removed
