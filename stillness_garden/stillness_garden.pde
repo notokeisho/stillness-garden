@@ -1,5 +1,6 @@
-// Stillness Garden - Main file
-// A meditative experience where stillness nurtures growth
+// 13 noto Final
+// Stillness Garden - A meditative experience where stillness nurtures growth
+// Stop mouse: Plants grow, Move mouse: Plants wither
 
 // Global variables
 Plant currentPlant;              // Currently growing plant (only one)
@@ -45,6 +46,12 @@ void draw() {
 
   // Reset blend mode
   blendMode(BLEND);
+
+  // Display instructions
+  fill(255, 200);
+  textSize(14);
+  text("Stop mouse: Plants grow", 10, 25);
+  text("Move mouse: Plants wither", 10, 45);
 }
 
 // Update mouse state and control plant lifecycle
