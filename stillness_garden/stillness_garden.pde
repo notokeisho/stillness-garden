@@ -1,4 +1,3 @@
-// 13 noto Final
 // Stillness Garden - A meditative experience where stillness nurtures growth
 // Stop mouse: Plants grow, Move mouse: Plants wither
 
